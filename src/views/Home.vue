@@ -1,16 +1,23 @@
 <template>
-  <div class="home">
-    <img alt="Vue logo" src="../assets/logo.png">
-    
+  <div id='home'>
+      <top />
+    <index />
   </div>
 </template>
 
 <script>
-// @ is an alias to /src
+import index from '../components/Index';
+import top from '../components/Top'
+export default {    
+    name: 'home',
+    components: {
+    top,
+    index
+  }
 
-
-export default {
-  name: 'home'
-  
-}
+};
 </script>
+
+<style>
+
+</style>

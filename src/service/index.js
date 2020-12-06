@@ -1,24 +1,42 @@
 import axios from 'axios';
-import config from './config';
+import store from '../store'
+//import config from './config';
 
-// 判断是路由跳转还是 axios 请求
-if (process.server) {
-  config.baseURL = `http://${process.env.HOST || 'localhost'}:${process.env.PORT || 3000}`;
-}
+// // 判断是路由跳转还是 axios 请求
+// if (process.server) {
+//   config.baseURL = `http://${process.env.HOST || 'localhost'}:${process.env.PORT || 3000}`;
+// }
 
-const service = axios.create(config);
-
-// 返回结果处理
-service.interceptors.response.use(
-  (res) => {
-    const x = {};
-    x.data = res.data;
-    x.status = res.status;
-    x.statusText = res.statusText;
-    return x;
+const service = axios.create({
+  baseURL: 'http://192.168.50.35:8080',
+  headers: {
+    "Content-type": "application/x-www-form-urlencoded",
+    //"Authorization": localStorage.getItem("token"),
+  }
+});
+service.interceptors.request.use(
+  config => {
+    const token = store.state.token;
+    if (token ) { // 判断是否存在token，如果存在的话，则每个http header都加上token
+      config.headers.authorization = token  //请求头加上token
+    }
+    return config
   },
-  (error) => { Promise.reject(error); },
-);
+  err => {
+    return Promise.reject(err)
+  })
+// 返回结果处理
+// service.interceptors.response.use(
+//   (res) => {
+//     const x = {};
+//     x.data = res.data;
+//     x.status = res.status;
+//     x.statusText = res.statusText;
+//     x.headers = res.headers;
+//     return x;
+//   },
+//   (error) => { Promise.reject(error); },
+// );
 
 export default {
   // post 方法

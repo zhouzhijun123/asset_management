@@ -1,7 +1,8 @@
 <template>
   <el-card class="signup-content">
     <img src="./../assets/imgs/logo.png" alt="">
-    <p class="slogen">FakeZhihu Project</p>
+    <p class="slogen">资产管理</p>
+    <!-- 注册 -->
     <div class="register" v-show="nowStatus === 'register'">
       <el-form
         :model="registerForm"
@@ -40,6 +41,7 @@
         <a href="#">注册机构号</a>
       </div>
     </div>
+    <!-- 登陆 -->
     <div class="login" v-show="nowStatus === 'login'">
       <el-form
         :model="loginForm"
@@ -79,6 +81,7 @@
         </span>
       </div>
     </div>
+
     <div class="switcher">
       {{tips[nowStatus].base}}
       <span
@@ -91,7 +94,8 @@
 </template>
 <script>
 import md5 from 'md5';
-
+import request from '@/service'
+import QS from 'qs'
 export default {
   data() {
     const validatePass = (rule, value, callback) => {
@@ -162,25 +166,32 @@ export default {
     };
   },
   methods: {
-    async login() {
-      await request.post('/users/login', {
-        name: this.loginForm.username,
-        pwd: md5(this.loginForm.password),
-      }).then((res) => {
-        if (res.status === 200) {
-          this.$Message.success('登录成功');
-          this.$router.push({ name: 'home' });
+     login() {
+     request.post('/user/login', QS.stringify(this.loginForm)
+      ).then((res) => {
+         //console.log(res);
+        if (res.data.success) {
+          //this.$Message.success(res.data.msg);
+          const token=res.headers["authorization"];
+          //console.log(token);
+          //sessionStorage.setItem("token",token);
+          this.$store.commit('tokenChange',token)
+          this.$store.commit('usernameChange',this.loginForm.username);
+          this.$store.commit('menuChange',res.data.data);
+
+          this.$store.commit('isLogChange',true);
+          this.$router.push({ name: 'home' }).catch(err => { console.log(err) });
         } else {
           this.$Message.error(res.data.msg);
         }
       });
     },
     async register() {
-      await request.post('/users/create', {
+      await request.post('/users/create', JSON.stringify({
         name: this.registerForm.name,
         pwd: md5(this.registerForm.password),
         email: this.registerForm.email,
-      }).then((res) => {
+      })).then((res) => {
         if (res.status === 201) {
           this.$Message.success('注册成功');
           this.$router.push({ name: 'home' });
@@ -201,7 +212,7 @@ export default {
           this.$Message.error('error submit!!!');
           return false;
         }
-        return '';
+        return '';  
       });
     },
   },
